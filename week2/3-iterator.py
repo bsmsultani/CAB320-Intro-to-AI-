@@ -1,3 +1,6 @@
+# this demo shows how to create an iterator
+# an iterator is an object that implements __next__() function, which returns the next item in the sequence
+# therefore an iterator is an iterable
 
 class Number:
     def __init__(self, start, stop):
