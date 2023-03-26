@@ -74,7 +74,28 @@ def get_max(T):
     @return
      v, I : max value and index sequence 
     '''
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
+    ############### ANSWER #################
+    max_val = float('-inf')
+    max_index = []
+
+    # recursive function that traverses the nested loop
+    def helper(T, index):
+        nonlocal max_val, max_index
+
+        # if T is a tuple, recursively call helper on element with updated index
+        if isinstance(T, tuple):
+            for i, val in enumerate(T):
+                helper(val, index + [i])
+            
+        else:
+            if T > max_val:
+                max_val = T
+                max_index = index
+    # call the helper function with nested tupe and initial index sequence
+    helper(T, [])
+
+    return max_val, max_index
+
 
 
 def print_nested_tuple(T, margin=''):
@@ -127,6 +148,5 @@ def test_3():
     
     
 if __name__ == '__main__':
-#    test_1()
-#    test_2()
-    test_3()
+    test_1()
+    test_2()
