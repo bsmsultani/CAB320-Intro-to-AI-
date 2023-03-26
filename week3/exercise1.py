@@ -17,6 +17,7 @@ def fibo(n):
 # you can yeild multiple times in a function
 
 
+
 def fibo_gen(n):
     a, b = 0, 1
     for i in range(n):
