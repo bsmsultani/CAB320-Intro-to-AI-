@@ -1,7 +1,7 @@
 
 """
 
-    2021 Generic search module for Python 3.5+
+    2020 Generic search module for Python 3.5+
         
 This search module is based on the AIMA book. 
 http://aima.cs.berkeley.edu/
@@ -12,20 +12,15 @@ The way to use this code is to subclass the class 'Problem' to create
 your own class of problems,  then create problem instances and solve them with 
 calls to the various search functions.
 
-Last modified 2020-02-3  by f.maire@qut.edu.au
-- revised function headers
-- simplified some implementation for the sake of clarity
 
+Last modified 2020-04-20  by f.maire@qut.edu.au
+- fixed best_first_tree_search
+
+Modified 2020-03-10  by f.maire@qut.edu.au
+changed memoize, PriorityQueue
 
 Abstract Base Classes for Containers
 https://docs.python.org/3/library/collections.abc.html
-
-
-It is recommended to use memoization to cache the heuristic values of states
-The relavatn decorator is
-@functools.lru_cache
-See details at
-https://docs.python.org/3.7/library/functools.html
 
 """
 
@@ -38,19 +33,16 @@ import sys
 assert sys.version_info >= (3, 5)
 
 import itertools
+import functools
 import heapq
 
 import collections # for dequeue
 
-import functools
 
-    
 def memoize(fn, slot=None, maxsize=128):
-    """
-    Memoize fn: make it remember the computed value for any argument list.
+    """Memoize fn: make it remember the computed value for any argument list.
     If slot is specified, store result in that slot of first argument.
-    If slot is false, use lru_cache for caching the values.   
-    """
+    If slot is false, use lru_cache for caching the values."""
     if slot:
         def memoized_fn(obj, *args):
             if hasattr(obj, slot):
@@ -330,41 +322,39 @@ def graph_search(problem, frontier):
         the node of the first goal state found
         or None is no goal state is found
     """
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
-
-#        “INSERT YOUR CODE HERE”
-#
-# Hint : look at tree_search() 
-
+    assert isinstance(problem, Problem)
+    frontier.append(Node(problem.initial))
+    explored = set() # initial empty set of explored states
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node
+        explored.add(node.state)
+        # Python note: next line uses of a generator
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in explored
+                        and child not in frontier)
     return None
+
 
 def breadth_first_tree_search(problem):
     "Search the shallowest nodes in the search tree first."
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
-
-    return #  “INSERT YOUR CODE HERE”
-              # Hint: just one function call. Use already written functions
-              
+    return tree_search(problem, FIFOQueue())
 
 
 def depth_first_tree_search(problem):
     "Search the deepest nodes in the search tree first."
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
-    
-    return #  “INSERT YOUR CODE HERE”
-              # Hint: just one function call. Use already written functions
+    return tree_search(problem, LIFOQueue())
+
 
 def depth_first_graph_search(problem):
     "Search the deepest nodes in the search tree first."
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
-    return #  “INSERT YOUR CODE HERE”
-              # Hint: just one function call. Use already written functions
-              
+    return graph_search(problem, LIFOQueue())
+
+
 def breadth_first_graph_search(problem):
     "Graph search version of BFS.  [Fig. 3.11]"
-    raise NotImplementedError # "INSERT YOUR CODE HERE"
-    return #  “INSERT YOUR CODE HERE”
-              # Hint: just one function call. Use already written functions
+    return graph_search(problem, FIFOQueue())
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -388,24 +378,19 @@ def best_first_tree_search(problem, f):
         if problem.goal_test(node.state):
             return node
         for child in node.expand(problem):
-            # Test whether a node with the same state exists in the frontier.
-            # Remember that two nodes are considered equal iff their states
-            # are equal. See method Node.__eq__()
+            # test whether a node with the same state
+            # exists in the frontier
             if child not in frontier:
-                # The node child is considered "in frontier", if a node
-                # already in frontier has the same state.
-                # See PriortyQueue.__contains__()
                 frontier.append(child)
             else:
-                # A node in frontier has the same state as child
-                # frontier[child] is the f-value of the node.
-                # See method  PriorityQueue.__getitem__()
+                #  A node in frontier has the same state as child
+                # frontier[child] is the f-value of the state
                 if f(child) < frontier[child]:
-                    # Replace the incumbent (that is the node
-                    # already in the frontier) with child 
+                    # replace the incumbent with child
                     del frontier[child]
                     frontier.append(child)
     return None
+ 
 
 
 
@@ -456,12 +441,10 @@ def depth_limited_search(problem, limit=50):
             cutoff_occurred = False
             for child in node.expand(problem):
                 result = recursive_dls(child, problem, limit)
-                raise NotImplementedError # "INSERT YOUR CODE HERE"
-
-                #
-                #        “INSERT YOUR CODE HERE”
-                #
-                                
+                if result == 'cutoff':
+                    cutoff_occurred = True
+                elif result is not None:
+                    return result
             if cutoff_occurred:
                 return 'cutoff'
             else:
@@ -479,9 +462,32 @@ def iterative_deepening_search(problem):
             return result
 
 #______________________________________________________________________________
+# Informed (Heuristic) Search
+
+greedy_best_first_graph_search = best_first_graph_search
+# Greedy best-first search is accomplished by specifying f(n) = h(n).
+
+def astar_graph_search(problem, h=None):
+    """A* search is best-first graph search with f(n) = g(n)+h(n).
+    You need to specify the h function when you call astar_search, or
+    else in your Problem subclass."""
+    h = memoize(h or problem.h, slot='h')
+    return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
+    
+
+
+def astar_tree_search(problem, h=None):
+    """A* search is best-first graph search with f(n) = g(n)+h(n).
+    You need to specify the h function when you call astar_search, or
+    else in your Problem subclass."""
+
+    # the h calcualtes the heuristic 
+    h = memoize(h or problem.h, slot='h')
+    return best_first_tree_search(problem, lambda n: n.path_cost + h(n))
+
+#______________________________________________________________________________
 #
 
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
 #                              CODE CEMETARY
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
-

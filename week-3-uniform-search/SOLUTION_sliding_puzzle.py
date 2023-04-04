@@ -2,14 +2,12 @@
 
 An implementation of the sliding puzzle for an arbitrary grid.
 
-Last modified 2022-03-25
+Last modified 2019-03-08
 by f.maire@qut.edu.au
 
 '''
 
-#import W04_search as search  # search module adapted from AIMA 
-
-import SOLUTION_W04_search as search  # search module adapted from AIMA 
+import SOLUTION_W04_search as search # search module adapted from AIMA 
 
 import random
 import time
@@ -41,7 +39,8 @@ class Sliding_puzzle(search.Problem):
         if i_blank < self.nc*(self.nr-1):
             L.append('D')
         # LEFT: If blank not in left column, swap it with tile to the left
-        raise NotImplementedError # "INSERT YOUR CODE HERE"
+        if i_blank % self.nc > 0:
+            L.append('L')
         # RIGHT: If blank not on right column, swap it with tile to the right
         if i_blank % self.nc < self.nc-1:
             L.append('R')
@@ -61,7 +60,8 @@ class Sliding_puzzle(search.Problem):
         if action == 'U':
             i_swap = i_blank - self.nc
         # DOWN: If blank not on bottom row, swap it with tile below it
-        raise NotImplementedError # "INSERT YOUR CODE HERE"
+        if action == 'D':
+            i_swap = i_blank + self.nc
         # LEFT: If blank not in left column, swap it with tile to the left
         if action == 'L':
             i_swap = i_blank - 1
@@ -144,6 +144,7 @@ class Sliding_puzzle(search.Problem):
         
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+    
 
 
 #______________________________________________________________________________
@@ -151,7 +152,7 @@ class Sliding_puzzle(search.Problem):
 
 if __name__ == "__main__":
 
-    sp = Sliding_puzzle(nr=3, nc=8, N=6)
+    sp = Sliding_puzzle(nr=2, nc=2, N=6)
 
     t0 = time.time()
 
