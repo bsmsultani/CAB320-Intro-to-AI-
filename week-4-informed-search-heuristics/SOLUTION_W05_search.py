@@ -1,7 +1,7 @@
 
 """
 
-    2020 Generic search module for Python 3.5+
+    2022 Generic search module for Python 3.5+
         
 This search module is based on the AIMA book. 
 http://aima.cs.berkeley.edu/
@@ -12,12 +12,7 @@ The way to use this code is to subclass the class 'Problem' to create
 your own class of problems,  then create problem instances and solve them with 
 calls to the various search functions.
 
-
-Last modified 2020-04-20  by f.maire@qut.edu.au
-- fixed best_first_tree_search
-
-Modified 2020-03-10  by f.maire@qut.edu.au
-changed memoize, PriorityQueue
+Last modified 2022-04-1  by f.maire@qut.edu.au
 
 Abstract Base Classes for Containers
 https://docs.python.org/3/library/collections.abc.html
@@ -390,7 +385,7 @@ def best_first_tree_search(problem, f):
                     del frontier[child]
                     frontier.append(child)
     return None
- 
+
 
 
 
@@ -473,15 +468,12 @@ def astar_graph_search(problem, h=None):
     else in your Problem subclass."""
     h = memoize(h or problem.h, slot='h')
     return best_first_graph_search(problem, lambda n: n.path_cost + h(n))
-    
 
 
 def astar_tree_search(problem, h=None):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""
-
-    # the h calcualtes the heuristic 
     h = memoize(h or problem.h, slot='h')
     return best_first_tree_search(problem, lambda n: n.path_cost + h(n))
 
