@@ -79,6 +79,20 @@ class PuzzleProblem(Problem):
 
 def Breadth_first_search(problem:Problem):
 
+    """
+    Breadth first search is a simple strategy in which the root is expanded first, then all of the sucessor of the root is expanded next, and
+    then all of their sucessors and so on. 
+
+    It uses FIFO queue (First in, First Out) for frontier.
+    New nodes which are deeper than their parents goes to the back of the queue. 
+    Old ones which are shallower than the new nodes, get expanded first.
+
+    The time complexity of BFS is O(n^d) where n is the number of nodes and d = depth
+
+    When the path cost is the same we can use this.
+
+    """
+
     # initialise the frontier with intial state
     # it is using a queue data structure which is LIFO
     # the last element goes in, the first element comes out
@@ -96,9 +110,9 @@ def Breadth_first_search(problem:Problem):
 
         # check if state is the goal state
         if problem.goal_test(state):
-            return path
+            return path + [state]
         
-        # add the state to the explored set
+        # add the state to the explored set, tuple state converts [1, 2] to (1,2 )
         explored.add(tuple(state))
 
         # generate successors of the state and add them to the frontier 
@@ -112,11 +126,3 @@ def Breadth_first_search(problem:Problem):
     return None
 
 
-
-initial_state = [1, 3, 2, None, 4, 6, 5, 7, 8]
-
-goal_state = [1, 2, 3, 4, 5, 6, 7, 8, None]
-
-puzzle = PuzzleProblem(initial_state, goal_state)
-
-print("Found a solution:", Breadth_first_search(puzzle))
